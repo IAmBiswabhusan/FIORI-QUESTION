@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Practice Quiz — 61 Questions</title>
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --accent:#0ea5a0; --muted:#94a3b8;
+      --correct-bg:rgba(16,185,129,0.08); --correct-border:rgba(16,185,129,0.9);
+      --wrong-bg:rgba(239,68,68,0.06); --wrong-border:rgba(239,68,68,0.9);
+      --glass: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    }
+    *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;}
+    body{margin:0;min-height:100vh;background:linear-gradient(180deg,#071023,#071427);color:#e6eef6;display:flex;align-items:center;justify-content:center;padding:28px}
+    .wrap{width:100%;max-width:980px}
+    header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    header h1{margin:0;font-size:20px}
+    .topbar{display:flex;gap:12px;margin-bottom:18px;align-items:center}
+    .card{background:var(--glass);padding:18px;border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
+    .meta{display:flex;gap:12px;align-items:center}
+    .score{font-weight:700;color:var(--accent);font-size:16px}
+    .small{color:var(--muted);font-size:13px}
+    .progress{height:10px;background:rgba(255,255,255,0.03);border-radius:999px;overflow:hidden;width:220px}
+    .bar{height:100%;background:linear-gradient(90deg,var(--accent),#60a5fa);width:0%}
+    .question-area{display:flex;gap:18px;margin-top:14px;flex-direction:column}
+    .qtext{font-size:18px;margin:0 0 8px 0}
+    .note{color:var(--muted);font-size:13px;margin:6px 0}
+    .options{display:grid;gap:8px;margin-top:10px}
+    .option{display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.02);cursor:pointer}
+    .option input{transform:scale(1.05)}
+    .option.correct{border-color:var(--correct-border);background:var(--correct-bg)}
+    .option.wrong{border-color:var(--wrong-border);background:var(--wrong-bg)}
+    .controls{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:9px 12px;border-radius:8px;color:var(--muted);cursor:pointer}
+    .btn.primary{background:linear-gradient(90deg,var(--accent),#60a5fa);color:#07202a;border:none}
+    .btn.ghost{background:transparent}
+    .feedback{margin-top:12px;padding:10px;border-radius:8px;font-weight:600}
+    .feedback.ok{background:rgba(16,185,129,0.08);color:#10b981;border:1px solid rgba(16,185,129,0.15)}
+    .feedback.bad{background:rgba(239,68,68,0.06);color:#ef4444;border:1px solid rgba(239,68,68,0.12)}
+    footer{margin-top:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .muted{color:var(--muted)}
+    @media(max-width:720px){ .progress{width:140px} .qtext{font-size:16px} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Practice Quiz — 61 Questions</h1>
+      <div style="margin-left:auto" class="small">Interactive • One question at a time</div>
+    </header>
+
+    <div class="card">
+      <div class="topbar">
+        <div class="meta">
+          <div class="score">Score: <span id="score">0</span></div>
+          <div class="small">|</div>
+          <div class="small">Question <span id="cur">1</span>/<span id="total">61</span></div>
+        </div>
+
+        <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+          <div class="small muted">Progress</div>
+          <div class="progress"><div class="bar" id="progressBar"></div></div>
+        </div>
+      </div>
+
+      <div class="question-area">
+        <h2 class="qtext" id="qtext">Loading...</h2>
+        <div class="note" id="qnote"></div>
+
+        <form id="optionsForm" class="options" onsubmit="return false;"></form>
+
+        <div class="controls">
+          <button id="submitBtn" class="btn primary">Submit Answer</button>
+          <button id="nextBtn" class="btn ghost">Next</button>
+          <button id="prevBtn" class="btn ghost">Prev</button>
+          <button id="restartBtn" class="btn ghost">Restart Quiz</button>
+          <div style="margin-left:auto" class="small muted" id="multiHint"></div>
+        </div>
+
+        <div id="feedbackArea"></div>
+
+        <footer>
+          <div class="small muted">Tip: For multi-answer questions select all correct options (score counts only when your selection exactly matches the correct set).</div>
+          <div class="small muted">Use ← → keys to navigate; Enter to submit.</div>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ---------- QUESTIONS ---------- */
+const QUESTIONS = [
+  {id:1, text:"Which activities does the OData Model Editor support? (2 answers)", options:["Edit ODataModels","Deploy ODataModels","Create ODataModels","Test ODataModels"], answer:[0,3], note:"A.1. a,d"},
+  {id:2, text:"What are the lifecycle events of an SAPUI5 view controller? (2 answers)", options:["onRendering","onExit","onAfterRendering","onbeforeEntry"], answer:[1,2], note:"A.2. b,c"},
+  {id:3, text:"Which features of the SAP Business Application Studio help you extend a standard SAP Fiori app? (2 answers)", options:["A wizard to generate files for each extension possibility","An editor to modify the data model in the extended project","The Extensibility Pane to choose extension points","The Descriptor Editor to choose elements for extension"], answer:[0,2], note:"A.3. a,c"},
+  {id:4, text:"What are some examples of extension points? (3 answers)", options:["Table building block","Custom column","Custom action","Custom section","Field building block"], answer:[1,2,3], note:"A.4. b,c,d"},
+  {id:5, text:"Which of the following are features of the SAPUI5 SDK? (2 answers)", options:["Interface for Web Dynpro","Full translation support","Responsiveness across browsers on non-mobile devices only","Feature-rich UI controls for complex UI patterns"], answer:[1,3], note:"A.5. b,d"},
+  {id:6, text:"What does the ABAP CDS annotation @UI.lineItem positions achieve?", options:["3 columns: ProductName, Status, Price","3 fields in a form: ProductName, Price, Status","3 columns: ProductName, Price, Status","3 fields in a form: ProductName, Status, Price"], answer:[2], note:"A.6. c"},
+  {id:7, text:"To which does an SAP Fiori tile point to directly?", options:["An SAP Fiori app","A target mapping with a semantic object and an action","An action","A semantic object"], answer:[1], note:"A.7. b"},
+  {id:8, text:"Binding modes valid when binding data from a model to an SAPUI5 view control? (3 answers)", options:["One-time binding","Three-way binding","Resource-model binding","Two-way binding","One-way binding"], answer:[0,3,4], note:"A.8. a,d,e"},
+  {id:9, text:"Which SAPUI5-supported data model must you use if backend sorts/filters data?", options:["ODataModel","ResourceModel","JSONModel","XMLModel"], answer:[0], note:"A.9. a"},
+  {id:10, text:"How does the SAP Cloud Connector help securely connect SAP Web IDE to on-premise? (2 answers)", options:["Creates connectivity by a reverse-invoke on the on-premise system","Supports custom destination API configuration and certificate inspection","Secures an SSL tunnel between SAP Cloud and on-premise","Initiates a cloud-based reverse-invoke process"], answer:[0,2], note:"A.10. a,c"},
+  {id:11, text:"To visualize metrics using cards, which SAP Fiori elements template is recommended?", options:["List Report Page","Overview Page","Custom Page","Analytical List Page"], answer:[1], note:"A.11. b"},
+  {id:12, text:"For deep insert of sales order and items, what do you create? (2 answers)", options:["An object structure defining the hierarchy","Individual structures and batch them","A flat structure and add expand","A nested structure"], answer:[0,3], note:"A.12. a,d"},
+  {id:13, text:"Which QUnit strictEqual call returns true?", options:["assert.strictEqual(0,'0','true')","assert.strictEqual(0,' ','true')","assert.strictEqual(0,null,'true')","assert.strictEqual(0,-0,'true')"], answer:[3], note:"A.13 d"},
+  {id:14, text:"Advantages of MVC design pattern in SAPUI5? (2 answers)", options:["Allows defining several views of same data","MVC artifacts can be transported and debugged separately","It supports quick coding","Allows changing view without modifying underlying business logic"], answer:[1,2], note:"A.14. b,c"},
+  {id:15, text:"Which SAP Fiori application can you launch using search instead of a tile?", options:["Factsheet","Analytical","Legacy","Transactional"], answer:[0], note:"A.15 a"},
+  {id:16, text:"Which file is required for configuring an SAP Fiori elements application?", options:["config.xml","package.json","manifest.json","settings.json"], answer:[2], note:"A.16 c"},
+  {id:17, text:"Which ABAP CDS annotation must you add to show colored status based on UpdatedStatus?", options:["@UI.selectionField... UpdatedStatus","@UI.lineItem... color: 'UpdatedStatus' Status","@UI.lineItem... criticality: 'UpdatedStatus' Status","@UI.lineItem and selectionField combined"], answer:[2], note:"A.17. C"},
+  {id:18, text:"In a standard SAPUI5 project, which file is the Application Descriptor?", options:["neo-app.json","manifest.json","Component.js","Index.html"], answer:[1], note:"A.18. b"},
+  {id:19, text:"When extending an SAP Fiori app with View Replacement which activities do you perform? (2 answers)", options:["Create SAPUI5 view that replaces complete view","Verify adding custom content in Extension Points is NOT sufficient","Create SAPUI5 control that replaces original control","Identify specific control to be replaced"], answer:[0,1], note:"A.19 a,b"},
+  {id:20, text:"When modeling a new role for Launchpad users which step is optional?", options:["Assign Catalog to Role","Create Group and Assign Tile","Create Tiles and Target Mappings","Create Catalog"], answer:[1], note:"A.20 b"},
+  {id:21, text:"What will be displayed in the upper left part of the object page given @UI.headerInfo? (2 answers)", options:["'Sales Order'","Sales Order Number value","Sales Order Owner","'Sales Orders'"], answer:[0,2], note:"A.21. a&c"},
+  {id:22, text:"Which activity allows sending commits from local branch to remote repo?", options:["Push","Save","Commit","Clone"], answer:[2], note:"A.22. c"},
+  {id:23, text:"Which tile types can use OData service to set title properties?", options:["Static","Semi-dynamic","Dynamic"], answer:[2], note:"A.23. c"},
+  {id:24, text:"Which UI elements can be part of a standard Analytical List Page? (3 answers)", options:["Visual filter","Form section","Table","Visual table","Interactive chart"], answer:[0,2,4], note:"A.24. a,c,e"},
+  {id:25, text:"How to assign apps from a catalog to an existing role using PFCG?", options:["Add semantic object to catalog & group","Add catalog to menu tab of role","Assign authorization profile in authorization tab","Add tile and target mapping to group"], answer:[3], note:"A.25 d"},
+  {id:26, text:"Which configuration setting for WebIDE Usage property to extend existing Fiori app?", options:["extend_abap","odata_abap","ui5_execute_abap","dev_abap"], answer:[1], note:"A.26 b"},
+  {id:27, text:"Options to display flight info readable on mobile? (2 answers)", options:["demandpopin with maxscreenwidth mobile","demandpopin with popindisplay Inline and maxscreenwidth mobile","demandpopin with minscreenwidth tablet","demandpopin with minscreenwidth tablet and popindisplay Inline"], answer:[2,3], note:"A.27. C,D"},
+  {id:28, text:"Which content types can be displayed within a table cell? (3 answers)", options:["text","chart","image","table","micro chart"], answer:[0,2,4], note:"A.28. A,c,e"},
+  {id:29, text:"Which model supports deep inserts?", options:["XML model","OData model","JSON model","Resource model"], answer:[1], note:"A.29. B"},
+  {id:30, text:"What can you use to add a filter field to a list report? (2 answers)", options:["UI.LineItem annotation","UI.SelectionField annotation","A setting in manifest.json","The Page Map"], answer:[1,2], note:"A.30 b,c"},
+  {id:31, text:"Benefits of OData V4 compared to V2? (3 answers)", options:["Flexible programming model","Better UX consistency","Advanced analytical capabilities","Improved data types","Better data compression"], answer:[0,2,3], note:"A.31. a,c,d"},
+  {id:32, text:"Benefits of using SAP Fiori elements? (3 answers)", options:["Accessibility & multi-device compatibility","Reduced development & maintenance costs","Accelerated development of JavaScript UI code","Custom floorplans for unique scenarios","Compliance with SAP Fiori design specs"], answer:[0,1,4], note:"A.32 a,b,e"},
+  {id:33, text:"Which are generic actions provided by SAP Fiori elements? (2 answers)", options:["Trigger external navigation","Delete an item","Create an item","Approve an item"], answer:[1,2], note:"A.33 b&c"},
+  {id:34, text:"To which platforms can you deploy an app finalized in Business Application Studio? (2 answers)", options:["SAPUI5 Java repository","SAPUI5 ABAP repository","SAP Fiori launchpad","SAP BTP"], answer:[1,3], note:"A.34 B&d"},
+  {id:35, text:"What can you do using the SAP Fiori Tools Extension Pack?", options:["Implement SAP BTP integration","Build SAP Fiori applications","Develop SAP Fiori elements framework"], answer:[1], note:"A.35 b"},
+  {id:36, text:"While testing app navigation not working, which agile pyramid option do you use?", options:["Sinon","QUnit","OPA","Mock server"], answer:[2], note:"A.36 c"},
+  {id:37, text:"Which control can you use to create responsive table-free layouts?", options:["sap.ui.layout.ResponsiveFlowLayout","sap.ui.layout.Grid","sap.ui.layout.VerticalLayout","sap.ui.layout.HorizontalLayout"], answer:[1], note:"A.37. b"},
+  {id:38, text:"For displaying List of Companies in Americas region which binding option is used for X,Y,Z?", options:["X: /regions/0/companies Y: companies/0/name Z: companies/0/city","X: /regions/companies Y: companies/name Z: companies/city","X: /regions/0/companies Y: name Z: city","X: /regions/companies Y: name Z: city"], answer:[2], note:"A.38. c"},
+  {id:39, text:"Why might a user be unable to find an application on Launchpad? (3 answers)", options:["User lacks PFCG role","Catalogs assigned don't contain app","OData service authorization missing","Target mapping missing in catalog","End user missing required group"], answer:[0,1,4], note:"A.39 a,b,e"},
+  {id:40, text:"Which of the following are building blocks provided by SAP Fiori elements? (3 answers)", options:["Filter Field","Custom Page","Routing","Table","Field"], answer:[0,3,4], note:"A.40 a,d,e"},
+  {id:41, text:"Which template would you use to create app containing charts and visual filters?", options:["Custom Page","Worklist Page","Analytical List Page"], answer:[2], note:"A.41 c"},
+  {id:42, text:"What is added by the ABAP CDS annotation with facets & fieldGroup?", options:["Two sections in object page body: personal & address","A section containing a subsection which displays address details","Two sections in object page header"], answer:[1], note:"A.42 b"},
+  {id:43, text:"QUnit tests are based on which pattern sequence?", options:["Assert, Act, Arrange","Given, When, Then","Arrange, Act, Assert","Given, Then, When"], answer:[2], note:"A.43 c"},
+  {id:44, text:"SAP recommended ways of adding custom code to Fiori elements app? (3 answers)", options:["Use controller extensions","Use private methods of SAP Fiori elements","Create new templates","Use building blocks","Create apps using custom page template"], answer:[0,3,4], note:"A.44 a,d,e"},
+  {id:45, text:"How can you configure Flexible Column Layout in Fiori elements? (2 answers)", options:["By adding a setting to manifest.json","By implementing a flexible custom extension","By adding a setting to package.json","By using the Page Map"], answer:[0,3], note:"A.45 a,d"},
+  {id:46, text:"Given ABAP CDS headerInfo, what is the title of the list report table?", options:["Sales Order Owners","Sales Orders","Sales Order Numbers"], answer:[1], note:"A.46. b"},
+  {id:47, text:"In Arrange-Act-Assert which element corresponds to Act? (in screenshot)", options:["this.calculator.press('1');","QUnit.test","QUnit.module","teardown : function() {}"], answer:[0], note:"A.47. a"},
+  {id:48, text:"Which events are triggered when user interacts with FacetFilter? (2 answers)", options:["listFilter","oninit","reset","confirm"], answer:[2,3], note:"A.48 c,d"},
+  {id:49, text:"How can you extend an SAP Fiori app? (3 answers)", options:["Modify data model to merge data at runtime","Create an adaptation project","Modify runtime libraries to be loaded","Modify properties of the view control","Add custom view content in predefined extension point"], answer:[1,3,4], note:"A.49 b,d,e"},
+  {id:50, text:"Which activities does the OData Model Editor support? (2 answers)", options:["Edit ODataModels","Deploy ODataModels","Create ODataModels","Test ODataModels"], answer:[0,2], note:"A.50. a,c"},
+  {id:51, text:"To set up a hook method for customizable notifications which activities required? (3 answers)", options:["Modify bootstrap option to allow multilayer extensions","Define new function name reserved for extension","Identify strategic location in controller","Add code snippet to check if method exists and execute it","Create a .js in utils folder for customer code"], answer:[1,2,3], note:"A.51 B,C,D"},
+  {id:52, text:"In SAP Fiori hub deployment where is SAPUI5 app code stored for a transactional app?", options:["SAP Front-End Server (FES)","SAP Web Dispatcher","SAP Back-End Server (BES)","SAP HANA XS Engine"], answer:[0], note:"A.52. a"},
+  {id:53, text:"Which file do you send to translator to add text for a new language?", options:["Master.view.xml","i18n.properties","Component.js","Manifest.json"], answer:[1], note:"A.53. b"},
+  {id:54, text:"To enable app to be accessed in multiple languages which activities? (3 answers)", options:["Create resource file with key/value pairs","Create resource file with .props extension","Create resource file for each language","Encode special characters in HTML in resources file","Create view & controller for each language"], answer:[0,2,3], note:"A.54  a,c,d"},
+  {id:55, text:"Characteristics of fragments? (2 answers)", options:["Fragments have their own controller","Fragments can be stand-alone view","Fragments are lightweight UI parts reusable","Fragments are found by SAPUI5 runtime using module loading"], answer:[2,3], note:"A.55 c,d"},
+  {id:56, text:"To demonstrate app with localization changes what activity do you perform?", options:["Configure run configuration file in app","Show i18n.properties file translations","Use preview frame in run configuration","Configure supportedLanguages in Project.json"], answer:[1], note:"A.56 b"},
+  {id:57, text:"Which HTTP request method can you use to create an OData resource?", options:["POST","PUT","UPDATE","CHANGE"], answer:[0], note:"A.57 a"},
+  {id:58, text:"Which extension properties defined in manifest.json? (2 answers)", options:["sap.ui.modelModifications","sap.ui.i18nModifications","sap.ui.controllerExtensions","sap.ui.viewModifications"], answer:[2,3], note:"A.58 c,d"},
+  {id:59, text:"Which determines how data is displayed in Fiori element applications?", options:["Application logic","Templates","Database structure","User permissions"], answer:[1], note:"A.59. b"},
+  {id:60, text:"Which methods can you use to bind data to controls in SAPUI5? (3 answers)", options:["Structure","Property","Combination","Element","Aggregation"], answer:[1,3,4], note:"A.60. b,d,e"},
+  {id:61, text:"What can you do to create a worklist SAP Fiori elements application? (3 answers)", options:["Add UI.hideFilterBar annotation to local annotation file","Use Page Map to hide filterbar","Add a setting to manifest.json of your list report","Add UI.hideFilterBar annotation in backend","Use Application Generator with suitable template"], answer:[2,1,4], note:"A.61. c,b,e"}
+]; 
+
+/* ---------- STATE ---------- */
+let idx = 0;
+let score = 0;
+let randomizedQuestions = [];
+const total = QUESTIONS.length;
+const scoreEl = document.getElementById('score');
+const curEl = document.getElementById('cur');
+const totalEl = document.getElementById('total');
+const qtextEl = document.getElementById('qtext');
+const qnoteEl = document.getElementById('qnote');
+const optionsForm = document.getElementById('optionsForm');
+const submitBtn = document.getElementById('submitBtn');
+const nextBtn = document.getElementById('nextBtn');
+const prevBtn = document.getElementById('prevBtn');
+const restartBtn = document.getElementById('restartBtn');
+const feedbackArea = document.getElementById('feedbackArea');
+const progressBar = document.getElementById('progressBar');
+const multiHint = document.getElementById('multiHint');
+
+totalEl.textContent = total;
+
+/* ---------- HELPERS ---------- */
+function arrayEquals(a,b){
+  if(a.length !== b.length) return false;
+  const sa = [...a].sort((x,y)=>x-y);
+  const sb = [...b].sort((x,y)=>x-y);
+  return sa.every((v,i)=>v===sb[i]);
+}
+
+function shuffleArray(arr){
+  return arr.map(v => ({v, sort: Math.random()}))
+            .sort((a,b) => a.sort - b.sort)
+            .map(({v}) => v);
+}
+
+/* ---------- RENDERING ---------- */
+function renderQuestion(){
+  const q = randomizedQuestions[idx];
+  curEl.textContent = idx + 1;
+  qtextEl.textContent = q.text;
+  qnoteEl.textContent = q.note ? q.note : '';
+  feedbackArea.innerHTML = '';
+  optionsForm.innerHTML = '';
+
+  const isMulti = q.answer.length > 1;
+  multiHint.textContent = isMulti ? 'Multiple answers — select all correct options.' : 'Single correct answer — choose one.';
+
+  q.options.forEach((opt, i) => {
+    const wrapper = document.createElement('label');
+    wrapper.className = 'option';
+    wrapper.dataset.idx = i;
+    const input = document.createElement('input');
+    input.type = isMulti ? 'checkbox' : 'radio';
+    input.name = 'opt';
+    input.value = i;
+    const span = document.createElement('span');
+    span.innerHTML = `<strong style="width:24px;display:inline-block">${String.fromCharCode(65+i)}</strong> ${opt}`;
+    wrapper.appendChild(input);
+    wrapper.appendChild(span);
+    optionsForm.appendChild(wrapper);
+  });
+
+  submitBtn.disabled = false;
+  nextBtn.disabled = true;
+  prevBtn.disabled = (idx === 0);
+  updateProgress();
+}
+
+function updateProgress(){
+  const pct = Math.round(((idx+1)/total)*100);
+  progressBar.style.width = pct + '%';
+}
+
+/* ---------- SUBMIT LOGIC ---------- */
+function getSelectedIndices(){
+  const inputs = Array.from(optionsForm.querySelectorAll('input'));
+  return inputs.filter(i=>i.checked).map(i=>parseInt(i.value,10));
+}
+
+function markOptions(revealAnswerIndices, userSelectedIndices){
+  Array.from(optionsForm.children).forEach((labelEl) => {
+    const i = parseInt(labelEl.dataset.idx,10);
+    labelEl.classList.remove('correct','wrong');
+    const isCorrect = revealAnswerIndices.includes(i);
+    const isSelected = userSelectedIndices.includes(i);
+    if(isCorrect) labelEl.classList.add('correct');
+    if(isSelected && !isCorrect) labelEl.classList.add('wrong');
+    const inp = labelEl.querySelector('input');
+    if(inp) inp.disabled = true;
+  });
+}
+
+submitBtn.addEventListener('click', () => {
+  const q = randomizedQuestions[idx];
+  const selected = getSelectedIndices();
+  if(selected.length === 0){
+    feedbackArea.innerHTML = `<div class="feedback bad">Please select at least one option.</div>`;
+    return;
+  }
+
+  const correctSet = q.answer.slice();
+  const isCorrect = arrayEquals(selected, correctSet);
+
+  if(!q._answered){
+    if(isCorrect) { score += 1; scoreEl.textContent = score; }
+    q._answered = true;
+  }
+
+  markOptions(correctSet, selected);
+
+  if(isCorrect){
+    feedbackArea.innerHTML = `<div class="feedback ok">✅ Correct! Good job.</div>`;
+  } else {
+    const correctLetters = correctSet.map(i=>String.fromCharCode(65+i)).join(', ');
+    const correctTexts = correctSet.map(i=> q.options[i]).join(' • ');
+    feedbackArea.innerHTML = `<div class="feedback bad">❌ Wrong. Correct: <strong>${correctLetters}</strong> — ${correctTexts}</div>`;
+  }
+
+  submitBtn.disabled = true;
+  nextBtn.disabled = (idx === total - 1);
+  prevBtn.disabled = (idx === 0);
+});
+
+nextBtn.addEventListener('click', () => {
+  if(idx < total - 1){
+    idx++;
+    renderQuestion();
+  }
+});
+
+prevBtn.addEventListener('click', () => {
+  if(idx > 0){
+    idx--;
+    renderQuestion();
+  }
+});
+
+restartBtn.addEventListener('click', () => {
+  if(!confirm('Restart quiz? This will reset the score and randomize questions again.')) return;
+  startQuiz();
+});
+
+/* ---------- QUIZ INITIALIZATION ---------- */
+function startQuiz(){
+  idx = 0;
+  score = 0;
+  scoreEl.textContent = score;
+  QUESTIONS.forEach(q => { delete q._answered; });
+  randomizedQuestions = shuffleArray([...QUESTIONS]); // Randomize all 61 each time
+  renderQuestion();
+}
+
+window.addEventListener('keydown', (e) => {
+  if(e.key === 'ArrowRight') { if(!submitBtn.disabled) return; if(idx < total-1) nextBtn.click(); }
+  if(e.key === 'ArrowLeft') prevBtn.click();
+  if(e.key === 'Enter') {
+    if(submitBtn.disabled){
+      if(!nextBtn.disabled) nextBtn.click();
+    } else {
+      submitBtn.click();
+    }
+  }
+});
+
+/* ---------- START ---------- */
+startQuiz();
+</script>
+</body>
+</html>
